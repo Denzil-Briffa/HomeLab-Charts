@@ -39,9 +39,9 @@ jobs:
             # Get the current and previous version from Chart.yaml
             CURRENT_VERSION=$(yq e '.version' "$chart/Chart.yaml")
             PREVIOUS_VERSION=$(git show HEAD^:$chart/Chart.yaml | yq e '.version' -)
-      
+  
             if [ "$CURRENT_VERSION" == "$PREVIOUS_VERSION" ] || [ "$(echo -e "$CURRENT_VERSION\n$PREVIOUS_VERSION" | sort -V | head -n1)" != "$CURRENT_VERSION" ]; then
-              echo "::error Version not bumped for $chart (current: $CURRENT_VERSION, previous: $PREVIOUS_VERSION). Skipping release."
+              echo "::error file=$chart/Chart.yaml::Version not bumped for $chart (current: $CURRENT_VERSION, previous: $PREVIOUS_VERSION). Skipping release."
               echo "SKIP_RELEASE=true" >> $GITHUB_ENV
               exit 1 
             fi
