@@ -45,7 +45,6 @@ jobs:
             yq e ".version = \"$NEW_VERSION\"" -i "$chart/Chart.yaml"
             git add "$chart/Chart.yaml"
             git commit -m "Update version to $NEW_VERSION for PR"
-            git push
           done
 
       - name: Lint Changed Charts
