@@ -33,19 +33,6 @@ jobs:
             exit 0  # Exit with 0 (success) to stop the workflow without failure
           fi
           echo "CHARTS=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_ENV
-  
-      - name: Update Chart Version for PR
-        if: github.event_name == 'pull_request' && env.CHARTS != ''
-        run: |
-          for chart in $CHARTS; do
-            PR_SUFFIX="${{ github.event.pull_request.number }}.${{ github.run_number }}"
-            CURRENT_VERSION=$(yq e '.version' "$chart/Chart.yaml")
-            NEW_VERSION="1.1.5"
-            echo "Updating version for $chart to $NEW_VERSION"
-            yq e ".version = \"$NEW_VERSION\"" -i "$chart/Chart.yaml"
-            git add "$chart/Chart.yaml"
-            git commit -m "Update version to $NEW_VERSION for PR"
-          done
 
       - name: Lint Changed Charts
         if: env.CHARTS != ''
@@ -88,3 +75,4 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE_NAME_TEMPLATE: "1.1.5"
