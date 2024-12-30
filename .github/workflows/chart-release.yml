@@ -38,7 +38,7 @@ jobs:
         if: github.event_name == 'pull_request' && env.CHARTS != ''
         run: |
           for chart in $CHARTS; do
-            PR_SUFFIX=".${{ github.event.pull_request.number }}.${{ github.run_number }}"
+            PR_SUFFIX="${{ github.event.pull_request.number }}.${{ github.run_number }}"
             CURRENT_VERSION=$(yq e '.version' "$chart/Chart.yaml")
             NEW_VERSION="v0.${PR_SUFFIX}"
             echo "Updating version for $chart to $NEW_VERSION"
