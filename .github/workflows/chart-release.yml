@@ -73,8 +73,10 @@ jobs:
       - name: Set Chart Version
         id: set_version
         run: |
-          CHART_VERSION=$(yq eval '.version' "$chart/Chart.yaml")
-          echo "chart_version=$CHART_VERSION" >> $GITHUB_ENV
+          for chart in $CHARTS; do
+            CHART_VERSION=$(yq eval '.version' "$chart/Chart.yaml")
+            echo "chart_version=$CHART_VERSION" >> $GITHUB_ENV
+          done
   
       - name: Run chart-releaser for PR
         if: ${{ github.event_name == 'pull_request' }}
