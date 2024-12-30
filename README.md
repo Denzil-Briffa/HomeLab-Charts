@@ -1,2 +1,2 @@
 # HomeLab-Charts
-Helm Chart Repository for Homelab 
+Helm Chart Repository for Homelab Deployments
