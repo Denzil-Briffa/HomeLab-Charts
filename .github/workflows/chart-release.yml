@@ -24,7 +24,7 @@ jobs:
       - name: Get Changed Charts
         id: changed-charts
         run: |
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '^charts/' | cut -d'/' -f1,2 | uniq)
+          CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep '^charts/' | xargs -n1 dirname | uniq)
           echo "CHARTS=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_ENV
   
       - name: Lint Changed Charts
@@ -32,10 +32,39 @@ jobs:
         run: |
           for chart in $CHARTS; do
             echo "Linting chart: $chart"
-            helm lint "$chart"
+            if [ -f "$chart/lint-values.yaml" ]; then
+              echo "Using lint-values.yaml for $chart"
+              helm lint "$chart" --values "$chart/lint-values.yaml"
+            elif [ -f "$chart/values.yaml" ]; then
+              echo "Using values.yaml for $chart"
+              helm lint "$chart" --values "$chart/values.yaml"
+            else
+              echo "No values file found for $chart, using default values"
+              helm lint "$chart"
+            fi
+          done
+
+      - name: Template Changed Charts
+        if: env.CHARTS != ''
+        run: |
+          for chart in $CHARTS; do
+            echo "Rendering templates for chart: $chart"
+
+            # Check if lint-values.yaml exists
+            if [ -f "$chart/lint-values.yaml" ]; then
+              echo "Using lint-values.yaml for $chart"
+              helm template "$chart" --values "$chart/lint-values.yaml"
+            elif [ -f "$chart/values.yaml" ]; then
+              echo "Using values.yaml for $chart"
+              helm template "$chart" --values "$chart/values.yaml"
+            else
+              echo "No values file found for $chart, using default values"
+              helm template "$chart"
+            fi
           done
 
       - name: Run chart-releaser
+        if: ${{ success() && env.CHARTS != '' }}
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
