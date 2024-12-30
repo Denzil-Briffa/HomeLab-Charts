@@ -24,7 +24,7 @@ jobs:
       - name: Get Changed Charts
         id: changed-charts
         run: |
-          CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep '^charts/' | xargs -n1 dirname | uniq)
+          CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep '^charts/' | xargs -n1 dirname | cut -d'/' -f1,2 | uniq)
           echo "CHARTS=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_ENV
   
       - name: Lint Changed Charts
