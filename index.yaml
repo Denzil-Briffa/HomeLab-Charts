@@ -3,6 +3,15 @@ entries:
   homelab:
   - apiVersion: v2
     appVersion: "1.0"
+    created: "2024-12-30T18:55:46.550353853Z"
+    description: A dynamic Helm chart for multiple deployments
+    digest: 908524251f940b250425328ab3ed8881a560a60548fb8a417e435ba34f74e9e2
+    name: homelab
+    urls:
+    - https://github.com/Denzil-Briffa/HomeLab-Charts/releases/download/homelab-0.1.10/homelab-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
+    appVersion: "1.0"
     created: "2024-12-30T17:13:51.665457747Z"
     description: A dynamic Helm chart for multiple deployments
     digest: 0d692876b9d5ebe59fad174e3fa9faddfb97e4cbdff7d9ac1c80dcbb261a286a
@@ -19,4 +28,4 @@ entries:
     urls:
     - https://github.com/Denzil-Briffa/HomeLab-Charts/releases/download/homelab-0.1.0/homelab-0.1.0.tgz
     version: 0.1.0
-generated: "2024-12-30T17:13:51.665466754Z"
+generated: "2024-12-30T18:55:46.550366497Z"
