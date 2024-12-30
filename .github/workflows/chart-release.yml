@@ -25,6 +25,10 @@ jobs:
         id: changed-charts
         run: |
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '^charts/' | cut -d'/' -f1,2 | uniq)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No charts changed. Exiting."
+            exit 0  # Exit with 0 (success) to stop the workflow without failure
+          fi
           echo "CHARTS=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Check if Chart Version is Bumped
