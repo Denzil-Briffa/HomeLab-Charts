@@ -20,6 +20,20 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      
+      - name: Get Changed Charts
+        id: changed-charts
+        run: |
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '^charts/' | cut -d'/' -f1,2 | uniq)
+          echo "CHARTS=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_ENV
+  
+      - name: Lint Changed Charts
+        if: env.CHARTS != ''
+        run: |
+          for chart in $CHARTS; do
+            echo "Linting chart: $chart"
+            helm lint "$chart"
+          done
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
