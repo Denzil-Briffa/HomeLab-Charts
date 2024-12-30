@@ -40,7 +40,7 @@ jobs:
           for chart in $CHARTS; do
             PR_SUFFIX="${{ github.event.pull_request.number }}.${{ github.run_number }}"
             CURRENT_VERSION=$(yq e '.version' "$chart/Chart.yaml")
-            NEW_VERSION="v0.${PR_SUFFIX}"
+            NEW_VERSION="99.${PR_SUFFIX}"
             echo "Updating version for $chart to $NEW_VERSION"
             yq e ".version = \"$NEW_VERSION\"" -i "$chart/Chart.yaml"
             git add "$chart/Chart.yaml"
