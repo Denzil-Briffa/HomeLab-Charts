@@ -70,9 +70,22 @@ jobs:
             fi
           done
       
-      - name: Run chart-releaser
-        if: ${{ success() && env.CHARTS != '' }}
+      - name: Set Chart Version
+        id: set_version
+        run: |
+          CHART_VERSION=$(yq eval '.version' .$chart/Chart.yaml)
+          echo "chart_version=$CHART_VERSION" >> $GITHUB_ENV
+  
+      - name: Run chart-releaser for PR
+        if: ${{ github.event_name == 'pull_request' }}
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NAME_TEMPLATE: "1.1.5"
+          CR_RELEASE_NAME_TEMPLATE: ${{ format('{0}-alpha-{1}', env.chart_version, github.run_number) }}
+  
+      - name: Run chart-releaser for non-PR
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE_NAME_TEMPLATE: ${{ env.chart_version }}
