@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
 
 jobs:
   release:
@@ -69,25 +66,9 @@ jobs:
               helm template "$chart"
             fi
           done
-      
-      - name: Set Chart Version
-        id: set_version
-        run: |
-          for chart in $CHARTS; do
-            CHART_VERSION=$(yq eval '.version' "$chart/Chart.yaml")
-            echo "chart_version=$CHART_VERSION" >> $GITHUB_ENV
-          done
-  
-      - name: Run chart-releaser for PR
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: helm/chart-releaser-action@v1.6.0
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NAME_TEMPLATE: ${{ format('{0}-alpha.pr{1}-build.run{2}', env.chart_version, github.event.pull_request.number, github.run_number) }}
   
       - name: Run chart-releaser for non-PR
         if: ${{ github.event_name != 'pull_request' }}
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NAME_TEMPLATE: ${{ env.chart_version }}

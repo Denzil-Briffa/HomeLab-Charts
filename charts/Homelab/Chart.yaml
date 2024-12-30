@@ -1,5 +1,5 @@
 apiVersion: v2
 name: homelab
 description: A dynamic Helm chart for multiple deployments
-version: 0.1.1
+version: 0.1.10
 appVersion: "1.0"
