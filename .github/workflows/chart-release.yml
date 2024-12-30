@@ -81,11 +81,9 @@ jobs:
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Using version $VERSION"
-        
+      
       - name: Run chart-releaser
         if: ${{ success() && env.CHARTS != '' }}
         uses: helm/chart-releaser-action@v1.6.0
-        with:
-          version: ${{ env.VERSION }}
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
