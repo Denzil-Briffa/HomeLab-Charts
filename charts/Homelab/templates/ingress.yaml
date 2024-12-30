@@ -1,6 +1,7 @@
-{{- if and .Values.ingress.enabled -}}
-
 {{- $fullName := include "homelab.fullname" . -}}
+{{- $values := .Values }}
+
+{{- if and .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -18,14 +19,12 @@ spec:
   {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
   tls:
-    {{- range .Values.ingress.tls }}
+  {{- range .Values.ingress.hosts }}
+    {{- if .tls }}
     - hosts:
-      {{- range .hosts }}
-        - {{ . | quote }}
-      {{- end }}
-      secretName: {{ .secretName }}
+        - {{ .host | quote }}
+      secretName: {{ .tls.secretName }}
     {{- end }}
   {{- end }}
   rules:
@@ -33,14 +32,14 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
-    {{- range .paths }}
-          - path: {{ . }}
-            pathType: ImplementationSpecific
+        {{- range .paths }}
+          - path: {{ .path | quote }}
+            pathType: {{ .pathType | default "Prefix" | quote }}
             backend:
               service:
                 name: {{ $fullName }}
                 port:
-                  name: http
-    {{- end }}
+                  number: {{ $values.service.port | default 80 }}
+        {{- end }}
   {{- end }}
 {{- end }}

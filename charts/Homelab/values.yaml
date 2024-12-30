@@ -1,21 +1,24 @@
-image:
-  repository: test 
-  tag: test
-
-replicaCount: 1
+global:
+  replicaCount: 1
+  image:
+    repository: test 
+    tag: test
 
 service:
   port: 80
-
-httpPort: 80
 
 ingress:
   enabled: false
   ingressClassName: "nginx-shared-services"
   hosts:
-    - host:
+    - host: applications.supli-spirtz.name
+      tls:
+        secretName: test
       paths:
-        - /
+        - path: /wallos(/|$)(.*)
+          pathType: Prefix
+          port:
+            number: 443
 
 pod:
   labels: {}
@@ -23,12 +26,7 @@ pod:
 
 persistence:
   enabled: false
-  # Valid options are pvc, emptyDir, hostPath, secret, configMap or custom
-  type: pvc
-  accessMode: ReadWriteOnce
-  size: 1Gi
-  storageClassName: proxmox-csi
-
+  
 annotations: {}
 
 extraEnvs: []
@@ -41,9 +39,12 @@ tolerations: {}
 
 livenessProbe:
   enabled: false
+  httpGet: {}
 
 readinessProbe:
   enabled: false
+  httpGet: {}
   
 startupProbe:
   enabled: false
+  httpGet: {}
