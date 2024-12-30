@@ -1,0 +1,49 @@
+image:
+  repository: test 
+  tag: test
+
+replicaCount: 1
+
+service:
+  port: 80
+
+httpPort: 80
+
+ingress:
+  enabled: false
+  ingressClassName: "nginx-shared-services"
+  hosts:
+    - host:
+      paths:
+        - /
+
+pod:
+  labels: {}
+  annotations: {}
+
+persistence:
+  enabled: false
+  # Valid options are pvc, emptyDir, hostPath, secret, configMap or custom
+  type: pvc
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClassName: proxmox-csi
+
+annotations: {}
+
+extraEnvs: []
+
+resources: {}
+
+affinity: {}
+
+tolerations: {}
+
+livenessProbe:
+  enabled: false
+
+readinessProbe:
+  enabled: false
+  
+startupProbe:
+  enabled: false

@@ -1,0 +1,27 @@
+{{- $fullName := include "homelab.fullname" . -}}
+{{- $name := include "homelab.name" . -}}
+{{- $chart := include "homelab.chart" . -}}
+
+
+{{- if .Values.persistence.enabled }}
+{{- range $volumeName, $volume := .Values.persistence.volumes }}
+  {{- if eq $volume.type "pvc" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullName }}-{{ $volumeName }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    helm.sh/chart: {{ $chart }}
+spec:
+  accessModes:
+    - {{ default "ReadWriteOnce" $volume.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ default "1Gi" $volume.size }}
+  storageClassName: {{ default "datastore" $volume.storageClassName }}
+  volumeMode: Filesystem
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,115 @@
+{{- $fullName := include "homelab.fullname" . -}}
+{{- $root := $ -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ include "homelab.name" . }}
+    helm.sh/chart: {{ include "homelab.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | trim | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "homelab.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      {{- if or .Values.pod.annotations }}
+      annotations:
+        {{- with .Values.pod.annotations }}
+        {{- toYaml . | trim | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "homelab.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- with .Values.pod.labels }}
+        {{- toYaml . | trim | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .httpGet.path }}
+              port: {{ .httpGet.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+            successThreshold: {{ .successThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .httpGet.path }}
+              port: {{ .httpGet.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+            successThreshold: {{ .successThreshold }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .httpGet.path }}
+              port: {{ .httpGet.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+            successThreshold: {{ .successThreshold }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.httpPort }}
+              protocol: TCP
+          {{- if .Values.resources }}
+          resources:
+            {{ toYaml .Values.resources | indent 12 }}
+          {{- end }}
+          {{- if .Values.extraEnvs }}
+          env:
+            {{ toYaml .Values.extraEnvs | indent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            {{- range $key, $value := .Values.persistence.volumes }} 
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath | default (printf "/%s" $key) }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+          imagePullPolicy: Always
+      volumes:
+        {{- if .Values.persistence.enabled }}
+        {{- range $key, $value := .Values.persistence.volumes }} 
+        - name: {{ $key }}-volume
+          {{- if eq $value.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ printf "%s-%s" $fullName $key }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+  minReadySeconds: 10
+  revisionHistoryLimit: 0
