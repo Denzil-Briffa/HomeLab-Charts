@@ -40,11 +40,12 @@ jobs:
           for chart in $CHARTS; do
             PR_SUFFIX="${{ github.event.pull_request.number }}.${{ github.run_number }}"
             CURRENT_VERSION=$(yq e '.version' "$chart/Chart.yaml")
-            NEW_VERSION="99.${PR_SUFFIX}"
+            NEW_VERSION="1.1.5"
             echo "Updating version for $chart to $NEW_VERSION"
             yq e ".version = \"$NEW_VERSION\"" -i "$chart/Chart.yaml"
             git add "$chart/Chart.yaml"
             git commit -m "Update version to $NEW_VERSION for PR"
+            git push
           done
 
       - name: Lint Changed Charts
@@ -82,18 +83,6 @@ jobs:
               helm template "$chart"
             fi
           done
-
-      - name: Set Version for Release
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            PR_NUMBER=${{ github.event.pull_request.number }}
-            VERSION="$(yq e '.version' charts/Homelab/Chart.yaml)-pr$PR_NUMBER"
-          else
-            VERSION="$(yq e '.version' charts/Homelab/Chart.yaml)"
-          fi
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Using version $VERSION"
       
       - name: Run chart-releaser
         if: ${{ success() && env.CHARTS != '' }}
