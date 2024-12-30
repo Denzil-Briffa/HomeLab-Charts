@@ -83,7 +83,7 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NAME_TEMPLATE: ${{ format('{0}-alpha-{1}', env.chart_version, github.run_number) }}
+          CR_RELEASE_NAME_TEMPLATE: ${{ format('{0}-alpha.pr{1}-build.run{2}', env.chart_version, github.event.pull_request.number, github.run_number) }}
   
       - name: Run chart-releaser for non-PR
         if: ${{ github.event_name != 'pull_request' }}
