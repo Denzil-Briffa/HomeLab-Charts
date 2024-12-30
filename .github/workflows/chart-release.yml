@@ -26,13 +26,12 @@ jobs:
         run: |
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '^charts/' | cut -d'/' -f1,2 | uniq)
           if [ -z "$CHANGED_FILES" ]; then
-            echo "No charts changed. Exiting."
+            echo "::warning file=github-actions.log::No charts changed. Exiting."
             exit 0  # Exit with 0 (success) to stop the workflow without failure
           fi
           echo "CHARTS=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Check if Chart Version is Bumped
-        if: env.CHARTS != ''
         id: version_check
         run: |
           for chart in $CHARTS; do
@@ -42,14 +41,13 @@ jobs:
       
             # Compare versions using sort -V to ensure the version has been bumped
             if [ "$(echo -e "$CURRENT_VERSION\n$PREVIOUS_VERSION" | sort -V | head -n1)" != "$CURRENT_VERSION" ]; then
-              echo "Version not bumped for $chart (current: $CURRENT_VERSION, previous: $PREVIOUS_VERSION). Skipping release."
+              echo "::error Version not bumped for $chart (current: $CURRENT_VERSION, previous: $PREVIOUS_VERSION). Skipping release."
               echo "SKIP_RELEASE=true" >> $GITHUB_ENV
               exit 1 
             fi
           done
   
       - name: Lint Changed Charts
-        if: env.CHARTS != '' && env.SKIP_RELEASE != 'true'
         run: |
           for chart in $CHARTS; do
             echo "Linting chart: $chart"
@@ -66,7 +64,6 @@ jobs:
           done
 
       - name: Template Changed Charts
-        if: env.CHARTS != '' && env.SKIP_RELEASE != 'true'
         run: |
           for chart in $CHARTS; do
             echo "Rendering templates for chart: $chart"
@@ -85,7 +82,6 @@ jobs:
           done
 
       - name: Run chart-releaser
-        if: ${{ success() && env.CHARTS != '' && env.SKIP_RELEASE != 'true' }}
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
