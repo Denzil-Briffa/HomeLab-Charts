@@ -1,0 +1,102 @@
+global:
+  replicaCount: 1
+  strategy: Recreate
+  revisionHistoryLimit: 70
+  image:
+    repository: test 
+    tag: test
+
+service:
+  port: 80
+  targetPort: 90
+  protocol: TCP
+  name: http
+
+ingress:
+  enabled: false
+  ingressClassName: "nginx-shared-services"
+  hosts:
+    - host: test1.test
+      tls:
+        secretName: test
+      paths:
+        - path: /wallos(/|$)(.*)
+          pathType: Prefix
+    - host: test2.test
+      paths:
+        - path: /wallos(/|$)(.*)
+          pathType: ImplementSpecific
+
+pod:
+  labels: {}
+  annotations: {}
+
+persistence:
+  enabled: true
+  volumes:
+    - name: media
+      # Valid options are pvc, emptyDir, hostPath, secret, configMap or custom
+      type: pvc
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      storageClassName: proxmox-csi
+    - name: data
+      type: pvc
+      accessMode: ReadWriteOnce
+      storageClassName: datastore 
+
+annotations: {}
+
+extraEnvs:
+  - name: test
+    value: hello
+
+resources:
+  limits:
+    cpu: 150m
+    ephemeral-storage: 2Gi
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    ephemeral-storage: 50Mi
+    memory: 128Mi
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: primary
+            app.kubernetes.io/instance: immich
+            app.kubernetes.io/name: postgresql
+        topologyKey: kubernetes.io/hostname
+      weight: 1
+
+tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+
+livenessProbe:
+  enabled: true
+  httpGet: 
+    path: /home
+    port: 80
+  initialDelaySeconds: 60
+  timeoutSeconds: 80
+  failureThreshold: 5
+  successThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet: {}
+  
+startupProbe:
+  enabled: true
+  httpGet: {}
