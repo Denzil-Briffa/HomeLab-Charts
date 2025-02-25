@@ -1,4 +1,5 @@
 {{- $fullName := include "homelab.fullname" . -}}
+{{- $root := . -}}
 {{- $name := include "homelab.name" . }}
 {{- $chart:= include "homelab.chart" . }}
 {{- $values := .Values }}
@@ -12,10 +13,10 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ $fullName }}-{{ .name }}
   labels:
-    app.kubernetes.io/name: {{ include "homelab.name" . }}
-    helm.sh/chart: {{ include "homelab.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ $name }}
+    helm.sh/chart: {{ $chart }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
 spec:
   accessModes:
     - {{ .accessMode | default "ReadWriteOnce" | quote }}
