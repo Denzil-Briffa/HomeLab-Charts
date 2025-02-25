@@ -16,7 +16,7 @@ metadata:
   {{- end }}
 spec:
   replicas: {{ .Values.global.replicaCount }}
-  strategy: {{ .Values.global.strategy | default "RollingUpdate" }}
+  strategytype: {{ .Values.global.strategy | default "RollingUpdate" }}
   revisionHistoryLimit: {{ .Values.global.revisionHistoryLimit | default 5 }}
   selector:
     matchLabels:
