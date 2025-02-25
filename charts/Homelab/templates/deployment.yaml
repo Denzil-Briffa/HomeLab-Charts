@@ -94,7 +94,7 @@ spec:
           {{- if .Values.persistence.enabled }}
           volumeMounts:
             {{- range .Values.persistence.volumes }}
-            - name: {{ .name }}
+            - name: {{ .name }}-volume
               mountPath: {{ .mountPath | default (printf "/%s" .name) }}
               {{- if .subPath }}
               subPath: {{ .subPath }}
