@@ -101,7 +101,7 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
       {{- if .Values.persistence.enabled }}
       volumes:
         {{- range .Values.persistence.volumes }}
