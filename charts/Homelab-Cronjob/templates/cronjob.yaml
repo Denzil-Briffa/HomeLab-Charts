@@ -36,6 +36,7 @@ spec:
                 {{- end }}
               {{- end }}
           {{- if .Values.persistence.enabled }}
+          restartPolicy: OnFailure
           volumes:
             {{- range .Values.persistence.volumes }}
             - name: {{ .name }}-volume
