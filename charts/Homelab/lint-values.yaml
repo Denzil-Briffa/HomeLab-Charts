@@ -1,6 +1,11 @@
 global:
   replicaCount: 1
   strategy: Recreate
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
   revisionHistoryLimit: 70
   image:
     repository: test 

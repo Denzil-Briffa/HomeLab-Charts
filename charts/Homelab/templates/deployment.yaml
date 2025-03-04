@@ -15,8 +15,16 @@ metadata:
     {{- toYaml . | trim | nindent 4 }}
   {{- end }}
 spec:
+  {{- with .Values.global.securityContext }}
+  securityContext:
+    runAsNonRoot: {{ .runAsNonRoot | default false }}
+    runAsUser: {{ .runAsUser | default 1000 }}
+    runAsGroup: {{ .runAsGroup | default 3000 }}
+    fsGroup: {{ .fsGroup | default 2000 }}
+  {{- end }}
   replicas: {{ .Values.global.replicaCount }}
-  strategytype: {{ .Values.global.strategy | default "RollingUpdate" }}
+  strategy:
+    type: {{ .Values.global.strategy | default "RollingUpdate" }}
   revisionHistoryLimit: {{ .Values.global.revisionHistoryLimit | default 5 }}
   selector:
     matchLabels:
@@ -43,6 +51,10 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
+      {{- with .Values.global.securityContext }}
+      securityContext:
+        fsGroup: {{ .fsGroup | default 2000 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}

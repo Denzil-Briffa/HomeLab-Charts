@@ -1,5 +1,6 @@
 global:
   replicaCount: 1
+  securityContext: {}
   image:
     repository: test 
     tag: test
