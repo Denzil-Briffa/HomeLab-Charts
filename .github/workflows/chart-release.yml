@@ -71,11 +71,7 @@ jobs:
           done
   
       - name: Run chart-releaser for non-PR
-        if: ${{ github.event_name != 'pull_request' && env.CHARTS != '' }}
-        run: |
-          for chart in $CHARTS; do
-            echo "Releasing chart: $chart"
-            chart-releaser upload --charts "$chart"
-          done
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
