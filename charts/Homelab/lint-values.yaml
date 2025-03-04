@@ -2,7 +2,7 @@ global:
   replicaCount: 1
   strategy: Recreate
   securityContext:
-    runAsNonRoot: false
+    runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
