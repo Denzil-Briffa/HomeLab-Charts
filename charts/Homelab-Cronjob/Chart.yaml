@@ -1,6 +1,6 @@
 apiVersion: v2
 name: homelab-cronjob
 description: A dynamic Helm chart for multiple deployments
-version: 0.0.2
+version: 0.0.
 appVersion: "1.0"
 
