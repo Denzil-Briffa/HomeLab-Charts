@@ -1,0 +1,32 @@
+{{- $fullName := include "homelab-cronjob.fullname" . -}}
+{{- $root := . -}}
+{{- $name := include "homelab-cronjob.name" . }}
+{{- $chart:= include "homelab-cronjob.chart" . }}
+{{- $values := .Values }}
+
+{{- if .Values.persistence.enabled }}
+{{- range .Values.persistence.volumes }}
+  {{- if eq .type "pvc" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullName }}-{{ .name }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    helm.sh/chart: {{ $chart }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+spec:
+  accessModes:
+    - {{ .accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ .size | default "1Gi" }}
+  {{- if .storageClassName }}
+  storageClassName: {{ .storageClassName | default "datastore" }}
+  {{- end }}
+  volumeMode: Filesystem
+{{- end }}
+{{- end }}
+{{- end }}

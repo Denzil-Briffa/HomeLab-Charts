@@ -58,6 +58,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}
+          imagePullPolicy: IfNotPresent
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -113,7 +114,6 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
-          imagePullPolicy: IfNotPresent
       {{- if .Values.persistence.enabled }}
       volumes:
         {{- range .Values.persistence.volumes }}

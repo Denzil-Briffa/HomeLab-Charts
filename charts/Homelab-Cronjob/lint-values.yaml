@@ -1,0 +1,46 @@
+global:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+
+  image:
+    repository: "test-repo/image"
+    tag: "latest"
+
+cronJob:
+  name: "test-cronjob"
+  schedule: "0 0 * * *"
+  args: ["--run", "--test-mode"]
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+  requests:
+    cpu: "250m"
+    memory: "128Mi"
+
+persistence:
+  enabled: true
+  volumes:
+    - name: pvc-volume
+      type: pvc
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      storageClassName: standard
+      mountPath: "/data"
+
+    - name: config-volume
+      type: configMap
+      mountPath: "/etc/config"
+
+    - name: emptydir-volume
+      type: emptyDir
+      mountPath: "/tmp/cache"
+
+    - name: hostpath-volume
+      type: hostPath
+      path: "/mnt/hostdata"
+      mountPath: "/mnt/data"

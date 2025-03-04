@@ -1,0 +1,25 @@
+global:
+  image:
+    repository: test 
+    tag: test
+  securityContext: {}
+
+cronJob:
+  name: cron
+  schedule: "0 0 * * *" 
+  args: ["--run", "--read-only-config"]
+  restartPolicy: OnFailure
+
+persistence:
+  enabled: false
+
+annotations: {}
+
+extraEnvs: []
+
+resources: {}
+
+affinity: {}
+
+tolerations: {}
+

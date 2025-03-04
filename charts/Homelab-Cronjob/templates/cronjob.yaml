@@ -1,0 +1,56 @@
+{{- $fullName := include "homelab-cronjob.fullname" . -}}
+{{- $values := .Values }}
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.cronJob.name }}
+spec:
+  schedule: {{ .Values.cronJob.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- with .Values.global.securityContext }}
+          securityContext:
+            runAsNonRoot: {{ .runAsNonRoot | default false }}
+            runAsUser: {{ .runAsUser | default 1000 }}
+            runAsGroup: {{ .runAsGroup | default 3000 }}
+            fsGroup: {{ .fsGroup | default 2000 }}
+          {{- end }}
+          containers:
+            - name: {{ .Chart.Name }}
+              image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}
+              imagePullPolicy: IfNotPresent
+              args: {{ .Values.cronJob.args }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              {{- if .Values.persistence.enabled }}
+              volumeMounts:
+                {{- range .Values.persistence.volumes }}
+                - name: {{ .name }}-volume
+                  mountPath: {{ .mountPath | default (printf "/%s" .name) }}
+                  {{- if .subPath }}
+                  subPath: {{ .subPath }}
+                  {{- end }}
+                {{- end }}
+              {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumes:
+            {{- range .Values.persistence.volumes }}
+            - name: {{ .name }}-volume
+              {{- if eq .type "pvc" }}
+              persistentVolumeClaim:
+                claimName: {{ printf "%s-%s" $fullName .name }}
+              {{- else if eq .type "configMap" }}
+              configMap:
+                name: {{ .name }}
+              {{- else if eq .type "emptyDir" }}
+              emptyDir: {}
+              {{- else if eq .type "hostPath" }}
+              hostPath:
+                path: {{ .path }}
+                type: DirectoryOrCreate
+              {{- end }}
+            {{- end }}
+          {{- end }}
