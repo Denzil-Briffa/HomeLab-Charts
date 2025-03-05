@@ -5,11 +5,9 @@ global:
   securityContext: {}
 
 cronJob:
-  name: cron
-  schedule: "0 0 * * *" 
-  args: ["--run", "--read-only-config"]
-  restartPolicy: OnFailure
-
+  name: "test-cronjob"
+  schedule: "0 0 * * *"
+  args: []
 persistence:
   enabled: false
 

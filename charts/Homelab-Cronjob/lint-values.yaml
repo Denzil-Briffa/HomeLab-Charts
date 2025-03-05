@@ -12,7 +12,11 @@ global:
 cronJob:
   name: "test-cronjob"
   schedule: "0 0 * * *"
-  args: ["--run", "--test-mode"]
+  args:
+    - "python"
+    - "kometa.py"
+    - "--run"
+    - "--read-only-config"
 
 resources:
   limits:
