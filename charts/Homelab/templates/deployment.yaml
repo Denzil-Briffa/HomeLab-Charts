@@ -15,13 +15,6 @@ metadata:
     {{- toYaml . | trim | nindent 4 }}
   {{- end }}
 spec:
-  {{- with .Values.global.securityContext }}
-  securityContext:
-    runAsNonRoot: {{ .runAsNonRoot | default false }}
-    runAsUser: {{ .runAsUser | default 1000 }}
-    runAsGroup: {{ .runAsGroup | default 3000 }}
-    fsGroup: {{ .fsGroup | default 2000 }}
-  {{- end }}
   replicas: {{ .Values.global.replicaCount }}
   strategy:
     type: {{ .Values.global.strategy | default "RollingUpdate" }}
@@ -43,6 +36,13 @@ spec:
         {{- toYaml . | trim | nindent 8 }}
         {{- end }}
     spec:
+    {{- with .Values.global.securityContext }}
+      securityContext:
+        runAsNonRoot: {{ .runAsNonRoot | default false }}
+        runAsUser: {{ .runAsUser | default 1000 }}
+        runAsGroup: {{ .runAsGroup | default 3000 }}
+        fsGroup: {{ .fsGroup | default 2000 }}
+    {{- end }}
       {{- with .Values.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
@@ -121,6 +121,13 @@ spec:
           {{- if eq .type "pvc" }}
           persistentVolumeClaim:
             claimName: {{ printf "%s-%s" $fullName .name }}
+          {{- else if eq .type "nfs" }}
+          nfs:
+            server: {{ .nfs.server | quote }}
+            path: {{ .nfs.path | quote }}
+            {{- if .nfs.readOnly }}
+            readOnly: {{ .nfs.readOnly }}
+            {{- end }}
           {{- end }}
         {{- end }}
       {{- end }}
