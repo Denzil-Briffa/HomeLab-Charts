@@ -17,6 +17,9 @@ service:
   protocol: TCP
   name: http
 
+args:
+  - "bundle exec sidekiq"
+
 ingress:
   enabled: false
   annotations:
