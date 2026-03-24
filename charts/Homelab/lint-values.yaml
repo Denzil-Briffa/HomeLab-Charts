@@ -123,7 +123,5 @@ persistentVolumeClaims:
 volumes:
   - name: config
     persistentVolumeClaim:
-      claimName: config
   - name: downloads
     persistentVolumeClaim:
-      claimName: downloads
