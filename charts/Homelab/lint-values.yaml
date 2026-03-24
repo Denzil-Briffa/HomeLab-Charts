@@ -1,120 +1,129 @@
-global:
-  replicaCount: 1
-  strategy: Recreate
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 3000
-    fsGroup: 2000
-  revisionHistoryLimit: 70
-  image:
-    repository: test 
-    tag: test
+replicaCount: 1
 
-service:
-  port: 80
-  targetPort: 90
-  protocol: TCP
-  name: http
+revisionHistoryLimit: 10
 
-args:
-  - "bundle exec sidekiq"
+strategy:
+  type: Recreate
 
-ingress:
-  enabled: false
-  annotations:
-      nginx.ingress.kubernetes.io/rewrite-target: /$2
-      nginx.ingress.kubernetes.io/use-regex: 'true'
-  ingressClassName: "nginx-shared-services"
-  hosts:
-    - host: test1.test
-      tls:
-        secretName: test
-      paths:
-        - path: /wallos(/|$)(.*)
-          pathType: Prefix
-    - host: test2.test
-      paths:
-        - path: /wallos(/|$)(.*)
-          pathType: ImplementSpecific
+podLabels:
+  app.kubernetes.io/component: media
 
-pod:
-  labels: {}
-  annotations: {}
+podAnnotations:
+  prometheus.io/scrape: "false"
 
-persistence:
-  enabled: true
-  volumes:
-    - name: media
-      # Valid options are pvc, emptyDir, hostPath, secret, configMap, nfs or custom
-      type: pvc
-      accessMode: ReadWriteOnce
-      size: 1Gi
-      storageClassName: proxmox-csi
-    - name: data
-      type: pvc
-      accessMode: ReadWriteOnce
-      storageClassName: datastore 
-    - name: nfs
-      type: nfs
-      mountPath: /nfs
-      nfs:
-        server: nfs-server.default.svc.cluster.local
-        path: /exported/path
-        readOnly: false
-
-annotations: {}
-
-extraEnvs:
-  - name: test
-    value: hello
-
-resources:
-  limits:
-    cpu: 150m
-    ephemeral-storage: 2Gi
-    memory: 512Mi
-  requests:
-    cpu: 100m
-    ephemeral-storage: 50Mi
-    memory: 128Mi
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
 
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - podAffinityTerm:
-        labelSelector:
-          matchLabels:
-            app.kubernetes.io/component: primary
-            app.kubernetes.io/instance: immich
-            app.kubernetes.io/name: postgresql
-        topologyKey: kubernetes.io/hostname
-      weight: 1
+      - weight: 1
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: homelab
 
 tolerations:
   - effect: NoExecute
     key: node.kubernetes.io/not-ready
     operator: Exists
     tolerationSeconds: 300
-  - effect: NoExecute
-    key: node.kubernetes.io/unreachable
-    operator: Exists
-    tolerationSeconds: 300
 
-livenessProbe:
-  enabled: true
-  httpGet: 
-    path: /home
-    port: 80
-  initialDelaySeconds: 60
-  timeoutSeconds: 80
-  failureThreshold: 5
-  successThreshold: 3
+containers:
+  - name: app
+    image:
+      repository: lscr.io/linuxserver/nzbget
+      tag: latest
+      pullPolicy: IfNotPresent
+    ports:
+      - name: http
+        containerPort: 6789
+    env:
+      - name: TZ
+        value: Europe/Malta
+      - name: PUID
+        value: "1000"
+      - name: PGID
+        value: "1000"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    volumeMounts:
+      - name: config
+        mountPath: /config
+      - name: downloads
+        mountPath: /downloads
+    livenessProbe:
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 30
+    readinessProbe:
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+  - name: metrics
+    image:
+      repository: nginx
+      tag: stable
+      pullPolicy: IfNotPresent
+    ports:
+      - name: metrics
+        containerPort: 9113
+    resources: {}
 
-readinessProbe:
+service:
   enabled: true
-  httpGet: {}
-  
-startupProbe:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 6789
+      targetPort: http
+    - name: metrics
+      port: 9113
+      targetPort: metrics
+
+httpRoute:
   enabled: true
-  httpGet: {}
+  hostnames:
+    - nzbget.homelab
+  parentRefs:
+    - name: default-gateway
+      namespace: networking
+      sectionName: home-lan
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - port: 6789
+
+persistentVolumeClaims:
+  - name: config
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    storageClassName: datastore
+  - name: downloads
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+    storageClassName: datastore
+
+volumes:
+  - name: config
+    persistentVolumeClaim:
+      claimName: config
+  - name: downloads
+    persistentVolumeClaim:
+      claimName: downloads

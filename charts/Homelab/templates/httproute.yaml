@@ -1,0 +1,43 @@
+{{- if .Values.httpRoute.enabled }}
+{{- $fullName := include "homelab.fullname" . -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ include "homelab.name" . }}
+    helm.sh/chart: {{ include "homelab.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.httpRoute.annotations }}
+  annotations:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.httpRoute.parentRefs }}
+  parentRefs:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.httpRoute.rules }}
+    - {{- with .matches }}
+      matches:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        {{- range .backendRefs }}
+        - name: {{ default $fullName .name }}
+          port: {{ .port }}
+          {{- with .namespace }}
+          namespace: {{ . }}
+          {{- end }}
+          {{- with .weight }}
+          weight: {{ . }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
+{{- end }}
