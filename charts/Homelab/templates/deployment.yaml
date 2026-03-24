@@ -106,7 +106,7 @@ spec:
         - name: {{ .name }}
           {{- if .persistentVolumeClaim }}
           persistentVolumeClaim:
-            claimName: {{ default (printf "%s-%s" $fullName .name) .persistentVolumeClaim.claimName }}
+            claimName: {{ default (printf "%s-%s" $fullName .name) .persistentVolumeClaim.existingClaim }}
           {{- else if .configMap }}
           configMap:
 {{ toYaml .configMap | nindent 12 }}
