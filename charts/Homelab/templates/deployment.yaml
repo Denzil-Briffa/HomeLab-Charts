@@ -104,22 +104,23 @@ spec:
       volumes:
         {{- range . }}
         - name: {{ .name }}
-          {{- if .persistentVolumeClaim }}
+          {{- if hasKey . "persistentVolumeClaim" }}
+          {{- $pvc := default dict .persistentVolumeClaim }}
           persistentVolumeClaim:
-            claimName: {{ default (printf "%s-%s" $fullName .name) .persistentVolumeClaim.existingClaim }}
-          {{- else if .configMap }}
+            claimName: {{ default (printf "%s-%s" $fullName .name) (get $pvc "existingClaim") }}
+          {{- else if hasKey . "configMap" }}
           configMap:
 {{ toYaml .configMap | nindent 12 }}
-          {{- else if .secret }}
+          {{- else if hasKey . "secret" }}
           secret:
 {{ toYaml .secret | nindent 12 }}
-          {{- else if .emptyDir }}
+          {{- else if hasKey . "emptyDir" }}
           emptyDir:
 {{ toYaml .emptyDir | nindent 12 }}
-          {{- else if .hostPath }}
+          {{- else if hasKey . "hostPath" }}
           hostPath:
 {{ toYaml .hostPath | nindent 12 }}
-          {{- else if .nfs }}
+          {{- else if hasKey . "nfs" }}
           nfs:
 {{ toYaml .nfs | nindent 12 }}
           {{- end }}
