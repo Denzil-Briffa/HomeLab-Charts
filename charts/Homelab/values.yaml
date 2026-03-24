@@ -1,51 +1,69 @@
-global:
-  replicaCount: 1
-  securityContext: {}
-  image:
-    repository: test 
-    tag: test
+replicaCount: 1
 
-service:
-  port: 80
+revisionHistoryLimit: 5
 
-ingress:
-  enabled: false
-  ingressClassName: "nginx-shared-services"
-  hosts:
-    - host: applications.supli-spirtz.name
-      tls:
-        secretName: test
-      paths:
-        - path: /wallos(/|$)(.*)
-          pathType: Prefix
-          port:
-            number: 443
+strategy:
+  type: RollingUpdate
 
-pod:
-  labels: {}
-  annotations: {}
+podLabels: {}
 
-persistence:
-  enabled: false
-  
-annotations: {}
+podAnnotations: {}
 
-extraEnvs: []
-
-resources: {}
+podSecurityContext: {}
 
 affinity: {}
 
-tolerations: {}
+tolerations: []
 
-livenessProbe:
-  enabled: false
-  httpGet: {}
+nodeSelector: {}
 
-readinessProbe:
+containers:
+  - name: app
+    image:
+      repository: nginx
+      tag: stable
+      pullPolicy: IfNotPresent
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+    env: []
+    envFrom: []
+    command: []
+    args: []
+    resources: {}
+    securityContext: {}
+    volumeMounts: []
+    livenessProbe: {}
+    readinessProbe: {}
+    startupProbe: {}
+
+initContainers: []
+
+service:
+  enabled: true
+  type: ClusterIP
+  annotations: {}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+
+httpRoute:
   enabled: false
-  httpGet: {}
-  
-startupProbe:
-  enabled: false
-  httpGet: {}
+  annotations: {}
+  hostnames: []
+  parentRefs: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: ""
+          port: 80
+
+persistentVolumeClaims: []
+
+volumes: []
