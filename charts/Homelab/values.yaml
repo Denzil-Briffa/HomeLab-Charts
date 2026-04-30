@@ -2,6 +2,10 @@ replicaCount: 1
 
 revisionHistoryLimit: 5
 
+minReadySeconds: 5
+
+terminationGracePeriodSeconds: 30
+
 strategy:
   type: RollingUpdate
 
@@ -12,6 +16,8 @@ podAnnotations: {}
 podSecurityContext: {}
 
 affinity: {}
+
+topologySpreadConstraints: []
 
 tolerations: []
 
