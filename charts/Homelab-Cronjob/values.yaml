@@ -1,23 +1,40 @@
 global:
   image:
-    repository: test 
+    repository: test
     tag: test
   securityContext: {}
+  containerSecurityContext: {}
 
 cronJob:
   name: "test-cronjob"
   schedule: "0 0 * * *"
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: null
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   args: []
+
+job:
+  backoffLimit: 1
+  activeDeadlineSeconds: null
+  ttlSecondsAfterFinished: 86400
+
+restartPolicy: OnFailure
+
 persistence:
   enabled: false
 
 annotations: {}
 
+podAnnotations: {}
+
 extraEnvs: []
 
 resources: {}
 
+nodeSelector: {}
+
 affinity: {}
 
 tolerations: {}
-
