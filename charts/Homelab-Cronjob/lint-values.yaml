@@ -4,6 +4,13 @@ global:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
 
   image:
     repository: "test-repo/image"
@@ -12,11 +19,23 @@ global:
 cronJob:
   name: "test-cronjob"
   schedule: "0 0 * * *"
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   args:
     - "python"
     - "kometa.py"
     - "--run"
     - "--read-only-config"
+
+job:
+  backoffLimit: 1
+  activeDeadlineSeconds: 5400
+  ttlSecondsAfterFinished: 86400
+
+restartPolicy: OnFailure
 
 resources:
   limits:

@@ -1,15 +1,36 @@
 {{- $fullName := include "homelab-cronjob.fullname" . -}}
-{{- $values := .Values }}
-
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Values.cronJob.name }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  schedule: {{ .Values.cronJob.schedule }}
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  suspend: {{ .Values.cronJob.suspend | default false }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy | default "Forbid" }}
+  {{- with .Values.cronJob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit | default 1 }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit | default 1 }}
   jobTemplate:
     spec:
+      backoffLimit: {{ .Values.job.backoffLimit | default 1 }}
+      {{- with .Values.job.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ . }}
+      {{- end }}
+      {{- with .Values.job.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ . }}
+      {{- end }}
       template:
+        {{- with .Values.podAnnotations }}
+        metadata:
+          annotations:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
         spec:
           {{- with .Values.global.securityContext }}
           securityContext:
@@ -18,14 +39,39 @@ spec:
             runAsGroup: {{ .runAsGroup | default 3000 }}
             fsGroup: {{ .fsGroup | default 2000 }}
           {{- end }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          restartPolicy: {{ .Values.restartPolicy | default "OnFailure" }}
           containers:
             - name: {{ .Chart.Name }}
               image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}
               imagePullPolicy: IfNotPresent
-              args: 
-                {{- toYaml .Values.cronJob.args | nindent 16 }}
+              {{- with .Values.global.containerSecurityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.cronJob.args }}
+              args:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.extraEnvs }}
+              env:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.resources }}
               resources:
-                {{- toYaml .Values.resources | nindent 16 }}
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
               {{- if .Values.persistence.enabled }}
               volumeMounts:
                 {{- range .Values.persistence.volumes }}
@@ -37,7 +83,6 @@ spec:
                 {{- end }}
               {{- end }}
           {{- if .Values.persistence.enabled }}
-          restartPolicy: OnFailure
           volumes:
             {{- range .Values.persistence.volumes }}
             - name: {{ .name }}-volume
@@ -48,11 +93,12 @@ spec:
               configMap:
                 name: {{ .name }}
               {{- else if eq .type "emptyDir" }}
-              emptyDir: {}
+              emptyDir:
+                {{- toYaml (.emptyDir | default dict) | nindent 16 }}
               {{- else if eq .type "hostPath" }}
               hostPath:
                 path: {{ .path }}
-                type: DirectoryOrCreate
+                type: {{ .hostPathType | default "DirectoryOrCreate" }}
               {{- end }}
             {{- end }}
           {{- end }}
